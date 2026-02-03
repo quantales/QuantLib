@@ -2,6 +2,7 @@
 
 /*
  Copyright (C) 2010 Klaus Spanderen
+ Copyright (C) 2025 Yassine Idyiahia
  
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -18,7 +19,7 @@
 */
 
 /*! \file kirkengine.hpp
-    \brief kirk formulae, due to Kirk (1995)
+    \brief Kirk formulae (1995) with optional Alos-Leon skew correction (2015)
 */
 
 #ifndef quantlib_kirk_engine_hpp
@@ -31,8 +32,15 @@ namespace QuantLib {
     //! Pricing engine for spread option on two futures
     /*! This class implements formulae from
         "Correlation in the Energy Markets", E. Kirk
-        Managing Energy Price Risk. 
+        Managing Energy Price Risk.
         London: Risk Publications and Enron, pp. 71-78
+
+        When useSkewCorrection is enabled, the engine applies the
+        first-order volatility skew correction from:
+        "On the short-maturity behaviour of the implied volatility
+        skew for random strike options and applications to option
+        pricing approximation", E. Alos, J.A. Leon (2015),
+        Quantitative Finance, 16(1), 31-42.
 
         \ingroup basketengines
 
@@ -43,11 +51,15 @@ namespace QuantLib {
       public:
         KirkEngine(ext::shared_ptr<GeneralizedBlackScholesProcess> process1,
                    ext::shared_ptr<GeneralizedBlackScholesProcess> process2,
-                   Real correlation);
+                   Real correlation,
+                   bool useSkewCorrection = false);
 
       protected:
         Real calculate(Real f1, Real f2, Real strike, Option::Type optionType,
             Real variance1, Real variance2, DiscountFactor df) const override;
+
+      private:
+        bool useSkewCorrection_;
     };
 }
 

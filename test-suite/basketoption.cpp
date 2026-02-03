@@ -4,6 +4,7 @@
  Copyright (C) 2003, 2004, 2005, 2008 StatPro Italia srl
  Copyright (C) 2004 Ferdinando Ametrano
  Copyright (C) 2004 Neil Firth
+ Copyright (C) 2025 Yassine Idyiahia
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -1346,6 +1347,133 @@ BOOST_AUTO_TEST_CASE(testStrangSplittingSpreadEngineVsMathematica) {
                        << "\n    expected  : " << testCase.strang2
                        << "\n    diff      : " << diff
                        << "\n    tolerance : " << tol);
+        }
+    }
+}
+
+
+BOOST_AUTO_TEST_CASE(testKirkSkewCorrection) {
+    BOOST_TEST_MESSAGE("Testing Kirk engine with Alos-Leon skew correction...");
+
+    // Use Actual360 to match Haug reference (consistent with testEuroTwoValues)
+    const DayCounter dc = Actual360();
+    const Date today = Date::todaysDate();
+    const Date maturity = today + timeToDays(0.5);  // 6 months
+
+    const Handle<YieldTermStructure> rTS(flatRate(today, 0.05, dc));
+
+    // Test backward compatibility: Kirk without skew should match Haug reference
+    {
+        const ext::shared_ptr<SimpleQuote> s1 = ext::make_shared<SimpleQuote>(122.0);
+        const ext::shared_ptr<SimpleQuote> s2 = ext::make_shared<SimpleQuote>(120.0);
+
+        const Handle<YieldTermStructure> rTS_haug(flatRate(today, 0.10, dc));
+
+        const ext::shared_ptr<BlackProcess> p1 =
+            ext::make_shared<BlackProcess>(
+                Handle<Quote>(s1), rTS_haug,
+                Handle<BlackVolTermStructure>(flatVol(today, 0.20, dc)));
+
+        const ext::shared_ptr<BlackProcess> p2 =
+            ext::make_shared<BlackProcess>(
+                Handle<Quote>(s2), rTS_haug,
+                Handle<BlackVolTermStructure>(flatVol(today, 0.20, dc)));
+
+        // 0.1 year maturity (36 days with Actual360)
+        BasketOption option(
+            ext::make_shared<SpreadBasketPayoff>(
+                ext::make_shared<PlainVanillaPayoff>(Option::Call, 3.0)),
+            ext::make_shared<EuropeanExercise>(today + timeToDays(0.1)));
+
+        // Kirk without skew correction should match Haug reference
+        option.setPricingEngine(ext::make_shared<KirkEngine>(p1, p2, 0.5, false));
+
+        const Real calculated = option.NPV();
+        const Real expected = 2.5537;  // Haug's "Option Pricing Formulas"
+        const Real tolerance = 1.0e-3;
+
+        if (std::abs(calculated - expected) > tolerance) {
+            BOOST_FAIL("Kirk engine backward compatibility check failed"
+                       << std::fixed << std::setprecision(4)
+                       << "\n    calculated: " << calculated
+                       << "\n    expected  : " << expected
+                       << "\n    diff      : " << std::abs(calculated - expected)
+                       << "\n    tolerance : " << tolerance);
+        }
+    }
+
+    // Test skew correction produces reasonable adjustments
+    {
+        struct TestCase {
+            Real f1, f2, strike, v1, v2, rho;
+            Option::Type type;
+        };
+
+        const TestCase testCases[] = {
+            // ATM-ish cases
+            { 100.0, 100.0,  5.0, 0.25, 0.30, 0.5, Option::Call },
+            { 100.0, 100.0,  5.0, 0.25, 0.30, 0.5, Option::Put  },
+            // ITM call
+            { 120.0, 100.0,  5.0, 0.25, 0.30, 0.5, Option::Call },
+            // OTM call
+            {  90.0, 100.0,  5.0, 0.25, 0.30, 0.5, Option::Call },
+            // High correlation
+            { 100.0, 100.0,  5.0, 0.25, 0.30, 0.9, Option::Call },
+            // Negative correlation
+            { 100.0, 100.0,  5.0, 0.25, 0.30,-0.5, Option::Call },
+        };
+
+        IncrementalStatistics statKirk, statKirkSkew;
+
+        for (const auto& tc : testCases) {
+            const ext::shared_ptr<SimpleQuote> s1 = ext::make_shared<SimpleQuote>(tc.f1);
+            const ext::shared_ptr<SimpleQuote> s2 = ext::make_shared<SimpleQuote>(tc.f2);
+
+            const ext::shared_ptr<BlackProcess> p1 =
+                ext::make_shared<BlackProcess>(
+                    Handle<Quote>(s1), rTS,
+                    Handle<BlackVolTermStructure>(flatVol(today, tc.v1, dc)));
+
+            const ext::shared_ptr<BlackProcess> p2 =
+                ext::make_shared<BlackProcess>(
+                    Handle<Quote>(s2), rTS,
+                    Handle<BlackVolTermStructure>(flatVol(today, tc.v2, dc)));
+
+            BasketOption option(
+                ext::make_shared<SpreadBasketPayoff>(
+                    ext::make_shared<PlainVanillaPayoff>(tc.type, tc.strike)),
+                ext::make_shared<EuropeanExercise>(maturity));
+
+            // PDE benchmark
+            const ext::shared_ptr<PricingEngine> fdEngine
+                = ext::make_shared<Fd2dBlackScholesVanillaEngine>(
+                    p1, p2, tc.rho, 100, 100, 25);
+
+            option.setPricingEngine(fdEngine);
+            const Real fdNPV = option.NPV();
+
+            // Kirk without skew correction
+            option.setPricingEngine(ext::make_shared<KirkEngine>(p1, p2, tc.rho, false));
+            statKirk.add(std::abs(option.NPV() - fdNPV));
+
+            // Kirk with skew correction
+            option.setPricingEngine(ext::make_shared<KirkEngine>(p1, p2, tc.rho, true));
+            statKirkSkew.add(std::abs(option.NPV() - fdNPV));
+        }
+
+        // Both engines should produce reasonable values
+        if (statKirk.mean() > 0.5) {
+            BOOST_FAIL("Kirk engine (no skew) produces excessive error vs PDE"
+                       << std::fixed << std::setprecision(5)
+                       << "\n    MAE       : " << statKirk.mean()
+                       << "\n    tolerance : 0.5");
+        }
+
+        if (statKirkSkew.mean() > 0.5) {
+            BOOST_FAIL("Kirk engine (with skew) produces excessive error vs PDE"
+                       << std::fixed << std::setprecision(5)
+                       << "\n    MAE       : " << statKirkSkew.mean()
+                       << "\n    tolerance : 0.5");
         }
     }
 }
