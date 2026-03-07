@@ -205,7 +205,6 @@ set(QL_SOURCES
     experimental/volatility/sviinterpolatedsmilesection.cpp
     experimental/volatility/svismilesection.cpp
     experimental/volatility/volcube.cpp
-    experimental/volatility/zabr.cpp
     index.cpp
     indexes/bmaindex.cpp
     indexes/equityindex.cpp
@@ -276,6 +275,7 @@ set(QL_SOURCES
     instruments/forwardrateagreement.cpp
     instruments/forwardvanillaoption.cpp
     instruments/futures.cpp
+    instruments/fxforward.cpp
     instruments/holderextensibleoption.cpp
     instruments/impliedvolatility.cpp
     instruments/inflationcapfloor.cpp
@@ -712,6 +712,7 @@ set(QL_SOURCES
     pricingengines/exotic/analyticsimplechooserengine.cpp
     pricingengines/exotic/analytictwoassetcorrelationengine.cpp
     pricingengines/exotic/analyticwriterextensibleoptionengine.cpp
+    pricingengines/forward/discountingfxforwardengine.cpp
     pricingengines/forward/mcforwardeuropeanbsengine.cpp
     pricingengines/forward/mcforwardeuropeanhestonengine.cpp
     pricingengines/futures/discountingperpetualfuturesengine.cpp
@@ -838,6 +839,7 @@ set(QL_SOURCES
     termstructures/volatility/equityfx/hestonblackvolsurface.cpp
     termstructures/volatility/equityfx/localvolsurface.cpp
     termstructures/volatility/equityfx/localvoltermstructure.cpp
+    termstructures/volatility/equityfx/piecewiseblackvariancesurface.cpp
     termstructures/volatility/flatsmilesection.cpp
     termstructures/volatility/gaussian1dsmilesection.cpp
     termstructures/volatility/inflation/constantcpivolatility.cpp
@@ -858,6 +860,7 @@ set(QL_SOURCES
     termstructures/volatility/smilesection.cpp
     termstructures/volatility/smilesectionutils.cpp
     termstructures/volatility/spreadedsmilesection.cpp
+    termstructures/volatility/zabr.cpp
     termstructures/volatility/swaption/cmsmarket.cpp
     termstructures/volatility/swaption/cmsmarketcalibration.cpp
     termstructures/volatility/swaption/gaussian1dswaptionvolatility.cpp
@@ -1352,6 +1355,7 @@ set(QL_HEADERS
     instruments/forwardrateagreement.hpp
     instruments/forwardvanillaoption.hpp
     instruments/futures.hpp
+    instruments/fxforward.hpp
     instruments/holderextensibleoption.hpp
     instruments/impliedvolatility.hpp
     instruments/inflationcapfloor.hpp
@@ -1483,6 +1487,7 @@ set(QL_HEADERS
     math/interpolations/multicubicspline.hpp
     math/interpolations/sabrinterpolation.hpp
     math/interpolations/xabrinterpolation.hpp
+    math/interpolations/zabrinterpolation.hpp
     math/kernelfunctions.hpp
     math/linearleastsquaresregression.hpp
     math/matrix.hpp
@@ -1938,6 +1943,7 @@ set(QL_HEADERS
     pricingengines/exotic/analyticsimplechooserengine.hpp
     pricingengines/exotic/analytictwoassetcorrelationengine.hpp
     pricingengines/exotic/analyticwriterextensibleoptionengine.hpp
+    pricingengines/forward/discountingfxforwardengine.hpp
     pricingengines/forward/forwardengine.hpp
     pricingengines/forward/forwardperformanceengine.hpp
     pricingengines/forward/mcforwardeuropeanbsengine.hpp
@@ -2104,6 +2110,7 @@ set(QL_HEADERS
     termstructures/volatility/equityfx/localvolsurface.hpp
     termstructures/volatility/equityfx/localvoltermstructure.hpp
     termstructures/volatility/equityfx/noexceptlocalvolsurface.hpp
+    termstructures/volatility/equityfx/piecewiseblackvariancesurface.hpp
     termstructures/volatility/flatsmilesection.hpp
     termstructures/volatility/gaussian1dsmilesection.hpp
     termstructures/volatility/inflation/constantcpivolatility.hpp
@@ -2127,6 +2134,9 @@ set(QL_HEADERS
     termstructures/volatility/smilesection.hpp
     termstructures/volatility/smilesectionutils.hpp
     termstructures/volatility/spreadedsmilesection.hpp
+    termstructures/volatility/zabr.hpp
+    termstructures/volatility/zabrinterpolatedsmilesection.hpp
+    termstructures/volatility/zabrsmilesection.hpp
     termstructures/volatility/swaption/cmsmarket.hpp
     termstructures/volatility/swaption/cmsmarketcalibration.hpp
     termstructures/volatility/swaption/gaussian1dswaptionvolatility.hpp
@@ -2138,6 +2148,7 @@ set(QL_HEADERS
     termstructures/volatility/swaption/swaptionvoldiscrete.hpp
     termstructures/volatility/swaption/swaptionvolmatrix.hpp
     termstructures/volatility/swaption/swaptionvolstructure.hpp
+    termstructures/volatility/swaption/zabrswaptionvolatilitycube.hpp
     termstructures/volatility/volatilitytype.hpp
     termstructures/voltermstructure.hpp
     termstructures/yield/bondhelpers.hpp

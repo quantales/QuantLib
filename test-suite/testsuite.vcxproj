@@ -715,6 +715,7 @@
     <ClCompile Include="fdmlinearop.cpp" />
     <ClCompile Include="forwardoption.cpp" />
     <ClCompile Include="forwardrateagreement.cpp" />
+    <ClCompile Include="fxforward.cpp" />
     <ClCompile Include="garch.cpp" />
     <ClCompile Include="gaussianquadratures.cpp" />
     <ClCompile Include="gjrgarchmodel.cpp" />
@@ -772,6 +773,7 @@
     <ClCompile Include="pathgenerator.cpp" />
     <ClCompile Include="period.cpp" />
     <ClCompile Include="perpetualfutures.cpp" />
+    <ClCompile Include="piecewiseblackvariancesurface.cpp" />
     <ClCompile Include="piecewiseyieldcurve.cpp" />
     <ClCompile Include="piecewisezerospreadedtermstructure.cpp" />
     <ClCompile Include="preconditions.cpp" />

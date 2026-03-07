@@ -70,6 +70,7 @@ set(QL_TEST_SOURCES
     forwardoption.cpp
     forwardrateagreement.cpp
     functions.cpp
+    fxforward.cpp
     garch.cpp
     gaussianquadratures.cpp
     gjrgarchmodel.cpp
@@ -127,6 +128,7 @@ set(QL_TEST_SOURCES
     pathgenerator.cpp
     period.cpp
     perpetualfutures.cpp
+    piecewiseblackvariancesurface.cpp
     piecewiseyieldcurve.cpp
     piecewisezerospreadedtermstructure.cpp
     preconditions.cpp

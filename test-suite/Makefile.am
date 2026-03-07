@@ -71,6 +71,7 @@ QL_TEST_SRCS = \
 	forwardoption.cpp \
 	forwardrateagreement.cpp \
 	functions.cpp \
+	fxforward.cpp \
 	garch.cpp \
 	gaussianquadratures.cpp \
 	gjrgarchmodel.cpp \
@@ -128,6 +129,7 @@ QL_TEST_SRCS = \
 	pathgenerator.cpp \
 	period.cpp \
 	perpetualfutures.cpp \
+	piecewiseblackvariancesurface.cpp \
 	piecewiseyieldcurve.cpp \
 	piecewisezerospreadedtermstructure.cpp \
 	preconditions.cpp \
